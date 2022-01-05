@@ -1,16 +1,35 @@
 require 'rails_helper'
 
 describe 'Books API', type: :request do
+    let!(:first_author) {FactoryBot.create(:author, first_name: 'Patrick', last_name: "Rothfuss", age: 55)}
+    let!(:second_author) {FactoryBot.create(:author, first_name: 'JK', last_name: "Rooling", age: 55)}
+
     describe 'GET /books' do
         before do
-            FactoryBot.create(:book, title: 'O nome do Vento', author: "Patrick Rothfuss")
-            FactoryBot.create(:book, title: 'Harry Potter', author: "JK Rooling")
+            FactoryBot.create(:book, title: 'O nome do Vento', author: first_author)
+            FactoryBot.create(:book, title: 'Harry Potter', author: second_author)
         end
         it 'returns all books' do
             get '/api/v1/books'
 
             expect(response).to have_http_status(:success)
-            expect(JSON.parse(response.body).size).to eq(2)
+            expect(response_body.size).to eq(2)
+            expect(response_body).to eq(
+                [
+                    {
+                        "id"=> 1,
+                        "title"=> "O nome do Vento",
+                        "author_name"=> "Patrick Rothfuss",
+                        "age"=> 55
+                    },
+                    {
+                        "id"=> 2,
+                        "title"=> "Harry Potter",
+                        "author_name"=> "JK Rooling",
+                        "age"=> 55
+                    },
+                ]
+            )
         end
     end
 
@@ -19,18 +38,26 @@ describe 'Books API', type: :request do
             expect {
                 post '/api/v1/books', params: {
                     author: {first_name: "Patrick", last_name: "Rothfuss", age: 40},
-                    book: {title: 'O termor do sábio'}
+                    book: {title: 'O temor do sábio'}
                     
                 }
             }.to change { Book.count }.from(0).to eq(1)
             
             expect(response).to have_http_status(:created)
-            expect(Author.count).to eq(1)
+            expect(Author.count).to eq(3)
+            expect(response_body).to eq(
+                {
+                    "id"=> 1,
+                    "title"=> "O temor do sábio",
+                    "author_name"=> "Patrick Rothfuss",
+                    "age"=> 40
+                }
+            )
         end
     end
 
     describe 'DELETE /books/:id' do
-        let!(:book) {FactoryBot.create(:book, title: 'O nome do Vento', author: "Patrick Rothfuss")}
+        let!(:book) {FactoryBot.create(:book, title: 'O nome do Vento', author: first_author)}
         it 'deletes a book' do
             expect{
                 delete "/api/v1/books/#{book.id}"
