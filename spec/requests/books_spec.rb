@@ -31,6 +31,46 @@ describe 'Books API', type: :request do
                 ]
             )
         end
+
+        it 'returns a subset of books based on limit' do
+            get '/api/v1/books', params: { limit: 1 }
+
+            expect(response).to have_http_status(:success)
+            expect(response_body.size).to eq(1)
+            expect(response_body).to eq(
+                [
+                    {
+                        "id"=> 1,
+                        "title"=> "O nome do Vento",
+                        "author_name"=> "Patrick Rothfuss",
+                        "age"=> 55
+                    }
+                ]
+            )
+        end
+
+        it 'returns a subset of books based on limit and offset' do
+            get '/api/v1/books', params: { limit: 1, offset: 1 }
+
+            expect(response).to have_http_status(:success)
+            expect(response_body.size).to eq(1)
+            expect(response_body).to eq(
+                [
+                    {
+                        "id"=> 2,
+                        "title"=> "Harry Potter",
+                        "author_name"=> "JK Rooling",
+                        "age"=> 55
+                    }
+                ]
+            )
+        end
+
+        it 'has a max limit of 100' do
+            expect(Book).to receive(:limit).with(100).and_call_original
+
+            get '/api/v1/books', params: { limit: 999 }
+        end
     end
 
     describe 'POST /books' do
