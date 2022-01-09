@@ -79,8 +79,7 @@ describe 'Books API', type: :request do
                 post '/api/v1/books', params: {
                     author: {first_name: "Patrick", last_name: "Rothfuss", age: 40},
                     book: {title: 'O temor do sábio'}
-                    
-                }
+                }, headers: { "Authorization" => "Bearer 123" }
             }.to change { Book.count }.from(0).to eq(1)
             
             expect(response).to have_http_status(:created)
